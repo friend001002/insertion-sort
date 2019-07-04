@@ -57,7 +57,7 @@ class Double_linked_node
 template<class val_type>
 class Double_linked_list
 {
-public:
+  public:
 
   Double_linked_list() : first_{ nullptr }, size_{}
   {}
@@ -67,8 +67,11 @@ public:
     while (nullptr != first_)
     {
       void *tmp{ first_->next_ };
-      first_->~Double_linked_node();
+
+      delete first_;
+
       first_ = { static_cast<Double_linked_node<val_type>*>(tmp) };
+
       size_--;
     }
 
@@ -78,6 +81,8 @@ public:
     }
 
     cout << this << " double linked list destr\n";
+
+    first_ = { nullptr };;
   }
 
   Double_linked_node<val_type>* Get_first()
@@ -586,34 +591,33 @@ class Insertion_sort
 {
   public:
 
-  Insertion_sort(Double_linked_list<T>& in) : data_(in)
+  Insertion_sort(Double_linked_list<T>* in) : data_(in)
   {
 
   }
 
   virtual ~Insertion_sort()
   {
-    //data_.clear();
-    //data_.shrink_to_fit();
-    data_.~Double_linked_list();
+    data_ = nullptr;
   }
 
   bool Sort(Double_linked_list<T>& out)
   {
-    if (0 == data_.Get_size())
+    if (0 == data_->Get_size())
     {
       cerr << "No data to sort!\n";
       return false;
     }
 
-    //size_t size_minus_1 { data_.size() - 1 };
-
-    //Insert(3, 1);
-
-    for (size_t i { 1 }; i < data_.Get_size(); ++i)
+    for (size_t i { 1 }; i < data_->Get_size(); ++i)
     {
-      T data_1 { data_[i]->Get_val() };
-      T data_2 { data_[i - 1]->Get_val() };
+      Double_linked_node<T> *tmp { data_->operator[](i) };
+
+      T data_1 { tmp->Get_val() };
+
+      tmp = { data_->operator[](i - 1) };
+
+      T data_2 { tmp->Get_val() };
 
       if (data_1 < data_2)
       {
@@ -621,12 +625,17 @@ class Insertion_sort
 
         for (size_t j {}; j < i; ++j)
         {
-          T data_3 { data_[j]->Get_val() };
-          T data_4 { data_[i]->Get_val() };
+          tmp = { data_->operator[](j) };
+
+          T data_3 { tmp->Get_val() };
+
+          tmp = { data_->operator[](i) };
+
+          T data_4 { tmp->Get_val() };
             
           if (data_3 > data_4)
           {
-            data_.Move_before(i, j);
+            data_->Move_before(i, j);
 
             break;
           }
@@ -634,56 +643,62 @@ class Insertion_sort
       }
     }
 
-    out = data_;
+    out = *data_;
 
     return true;
   }
 
   private:
 
-  Double_linked_list<T> data_;
+  Double_linked_list<T> *data_;
 };
 
 int main()
 {
-  Double_linked_list<double> dl;
-
-  Double_linked_node<double> *node1 = new Double_linked_node<double>(4);
-  Double_linked_node<double> *node2 = new Double_linked_node<double>(8);
-  Double_linked_node<double> *node3 = new Double_linked_node<double>(1);
-  Double_linked_node<double> *node4 = new Double_linked_node<double>(4);
-
-  dl.Add_element(&node4, nullptr);
-  dl.Add_element(&node3, node4);
-  dl.Add_element(&node2, node3);
-  dl.Add_element(&node1, node2);
-
-  for (size_t i{}; i < dl.Get_size(); ++i)
+  do
   {
-    cout << dl[i]->Get_val() << ' ';
-  }
+    Double_linked_list<double> *dl { new Double_linked_list<double> };
 
-  cout << endl;
+    Double_linked_node<double> *node1 = new Double_linked_node<double>(4);
+    Double_linked_node<double> *node2 = new Double_linked_node<double>(8);
+    Double_linked_node<double> *node3 = new Double_linked_node<double>(1);
+    Double_linked_node<double> *node4 = new Double_linked_node<double>(4);
 
-  Insertion_sort<double> is(dl);
+    dl->Add_element(&node4, nullptr);
+    dl->Add_element(&node3, node4);
+    dl->Add_element(&node2, node3);
+    dl->Add_element(&node1, node2);
 
-  Double_linked_list<double> res;
-
-  bool succ { is.Sort(res) };
-
-  if (succ)
-  {
-    for (size_t i {}; i < res.Get_size(); ++i)
+    for (size_t i{}; i < dl->Get_size(); ++i)
     {
-      cout << res[i]->Get_val() << ' ';
+      Double_linked_node<double> *tmp { dl->operator[](i) };
+
+      cout << tmp->Get_val() << ' ';
     }
 
     cout << endl;
+
+    Insertion_sort<double> is(dl);
+
+    Double_linked_list<double> res;
+
+    bool succ { is.Sort(res) };
+
+    if (succ)
+    {
+      for (size_t i {}; i < res.Get_size(); ++i)
+      {
+        cout << res[i]->Get_val() << ' ';
+      }
+
+      cout << endl;
+    }
+    else
+    {
+      cerr << "Failed\n";
+    }
   }
-  else
-  {
-    cerr << "Failed\n";
-  }
+  while (false);
 
   cin.get();
 
